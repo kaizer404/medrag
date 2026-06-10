@@ -1,0 +1,23 @@
+# Environment variables - NEVER push this
+.env
+
+# Virtual environments
+venv/
+venv311/
+medrag_env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Large data files - too big for GitHub
+
+
+# Model cache
+.cache/
+sentence_transformers/
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/

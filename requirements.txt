@@ -1,0 +1,9 @@
+langchain
+langchain-community
+langchain-groq
+sentence-transformers
+faiss-cpu
+requests
+python-dotenv
+gradio
+numpy
