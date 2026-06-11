@@ -9,7 +9,7 @@ import gradio as gr
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from langchain_groq import ChatGroq
-from langchain.schema import HumanMessage
+from langchain_core.messages import HumanMessage
 
 load_dotenv()
 
@@ -207,42 +207,131 @@ def query_medrag(question):
     
     return answer, sources_md
 
-with gr.Blocks(theme=gr.themes.Soft(), title="MedRAG") as demo:
-    gr.Markdown("""
-    # 🧠 MedRAG — Medical Research Assistant
-    ### Ask questions about brain tumors · Powered by PubMed + Llama 3
+css = """
+    .gradio-container {
+        max-width: 900px !important;
+        margin: auto !important;
+    }
+    .answer-box {
+        background: #0f1117 !important;
+        border: 1px solid #1e3a5f !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+    }
+    .source-box {
+        background: #0f1117 !important;
+        border: 1px solid #1a2e4a !important;
+        border-radius: 12px !important;
+    }
+    #ask-btn {
+        background: linear-gradient(135deg, #1a6bff, #0047cc) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+    #ask-btn:hover {
+        background: linear-gradient(135deg, #2979ff, #1a6bff) !important;
+        transform: translateY(-1px) !important;
+    }
+    .example-btn {
+        border-radius: 20px !important;
+        font-size: 13px !important;
+    }
+"""
+
+with gr.Blocks(theme=gr.themes.Base(
+    primary_hue="blue",
+    neutral_hue="slate",
+), css=css, title="MedRAG") as demo:
+
+    gr.HTML("""
+    <div style="text-align:center; padding: 32px 0 16px 0;">
+        <div style="font-size: 48px; margin-bottom: 8px;">🧠</div>
+        <h1 style="font-size: 2.2em; font-weight: 800; 
+                   background: linear-gradient(135deg, #60a5fa, #3b82f6);
+                   -webkit-background-clip: text;
+                   -webkit-text-fill-color: transparent;
+                   margin: 0 0 8px 0;">
+            MedRAG
+        </h1>
+        <p style="color: #94a3b8; font-size: 1.1em; margin: 0;">
+            Medical Research Assistant · Powered by PubMed + Llama 3
+        </p>
+        <p style="color: #475569; font-size: 0.9em; margin-top: 8px;">
+            525 peer-reviewed papers · 2839 semantic chunks · Real citations
+        </p>
+    </div>
     """)
-    
+
     with gr.Row():
         question_input = gr.Textbox(
-            label="Your Question",
+            label="",
             placeholder="e.g. What are treatment options for glioblastoma?",
-            lines=2
+            lines=2,
+            scale=5
         )
-    
-    ask_btn = gr.Button("🔍 Search Research", variant="primary", size="lg")
-    
+
+    ask_btn = gr.Button(
+        "🔍 Search Research",
+        variant="primary",
+        size="lg",
+        elem_id="ask-btn"
+    )
+
     with gr.Row():
+        with gr.Column(scale=3):
+            gr.Markdown("### 💬 Answer")
+            answer_output = gr.Markdown(
+                elem_classes=["answer-box"],
+                value="*Your answer will appear here...*"
+            )
         with gr.Column(scale=2):
-            answer_output = gr.Markdown(label="Answer")
-        with gr.Column(scale=1):
-            sources_output = gr.Markdown(label="Sources")
-    
+            gr.Markdown("### 📚 Sources")
+            sources_output = gr.Markdown(
+                elem_classes=["source-box"],
+                value="*Sources will appear here...*"
+            )
+
+    gr.Markdown("### 💡 Try these questions")
     gr.Examples(
         examples=[
             ["What are treatment options for glioblastoma?"],
             ["How is MRI used in brain tumor diagnosis?"],
             ["What is the survival rate for glioma patients?"],
             ["What role does temozolomide play in glioma treatment?"],
+            ["What are the latest advances in brain tumor immunotherapy?"],
         ],
-        inputs=question_input
+        inputs=question_input,
+        elem_id="examples"
     )
-    
-    ask_btn.click(fn=query_medrag,
-                  inputs=question_input,
-                  outputs=[answer_output, sources_output])
-    question_input.submit(fn=query_medrag,
-                          inputs=question_input,
-                          outputs=[answer_output, sources_output])
+
+    gr.HTML("""
+    <div style="text-align:center; padding: 24px 0 8px 0; 
+                border-top: 1px solid #1e293b; margin-top: 16px;">
+        <p style="color: #475569; font-size: 0.85em;">
+            Built with LangChain · FAISS · Groq · Gradio &nbsp;|&nbsp;
+            <a href="https://github.com/kaizer404/medrag" 
+               target="_blank" style="color: #3b82f6;">GitHub</a>
+            &nbsp;·&nbsp;
+            <a href="https://huggingface.co/Kaizer404" 
+               target="_blank" style="color: #3b82f6;">HuggingFace</a>
+        </p>
+        <p style="color: #334155; font-size: 0.8em;">
+            ⚠️ For research purposes only. Not a substitute for medical advice.
+        </p>
+    </div>
+    """)
+
+    ask_btn.click(
+        fn=query_medrag,
+        inputs=question_input,
+        outputs=[answer_output, sources_output]
+    )
+    question_input.submit(
+        fn=query_medrag,
+        inputs=question_input,
+        outputs=[answer_output, sources_output]
+    )
 
 demo.launch()
